@@ -1,0 +1,9 @@
+*.ld
+*.ioc
+*.launch
+*.mxproject
+*.project
+*.cproject
+*.swp
+*.settings
+/Debug
