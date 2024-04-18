@@ -19,12 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "main.h"
-#include "API_I2C.h"
-#include "API_lcd.h"
-#include "MS5611.h"
-#include "MEF_LCD.h"
-#include <stdio.h>
-#include <string.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -63,28 +57,7 @@ static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void updateTemp(uint8_t row, uint8_t col, int32_t newTemp);
-// Function to update the temperature on the LCD
-/*
-void updateLCDValue(uint8_t row, uint8_t col, int32_t value) {
-    char tempStr[12];
 
-    // Convert the new int32_t to a string
-    snprintf(tempStr, sizeof(tempStr), "%ld", value);
-
-    // Set cursor position to the start of the number
-    LCD_SetCursorPos(row, col);
-
-    // Clear the old number by printing spaces
-    LCD_send_txt((uint8_t*)(' '));
-
-    // Set cursor position to the start of the number again
-    LCD_SetCursorPos(row, col);
-    LCD_send_txt((uint8_t *)tempStr);
-
-}
-
-*/
 
 /* USER CODE END PFP */
 
@@ -129,54 +102,18 @@ int main(void)
   LCD_init();
   LCD_clear();
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
-  //PosCaracHLcd(0);
-  //LCD_send_txt((uint8_t *)"Hello world");
 
-  //blink_state(1);
-  //backlight_state(0);
-  //HAL_Delay(2000);
-  //backlight_state(1);
   MS5611_init();
-  /* USER CODE END 2 */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
 
-  //int32_t temp ,pressure;
-  /*
-  LCD_SetCursorPos(0,0);
-  LCD_send_txt((uint8_t *)"Temp(C):");
-  LCD_SetCursorPos(1,0);
-  LCD_send_txt((uint8_t *)"Pre(mbar):");*/
   debounceFSM_init();
-  menu_init();
+
   while (1)
   {
 
-      debounceFSM_update(); // Update the button debounce FSM
-       // Update other FSMs and system components as needed
-       //if (readKey()) { // Check if the button was pressed
-           //buttonPressed(); // Execute actions when the button is pressed
-           update_display_state(); // Update the display based on the new state
-       //}
-    /* USER CODE END WHILE */
-	  //temp = MS5611_read_temp();
-	  //LCD_send_txt((uint8_t *)"Temp:");
-	  //temp = 2000;
-	  //snprintf(buffer,10,"%ld",temp);
-	  //HAL_UART_Transmit(&huart3, (uint8_t*)temp, sizeof(temp), HAL_MAX_DELAY);
-	  //sendInt32OverUSART(temp);
-	  //updateLCDValue(0,8, temp);
-	  //pressure = MS5611_read_pressure();
+      debounceFSM_update();
 
-	  //updateLCDValue(1,10, pressure);
-	  //LCD_send_int32(&temp);
-	  //HAL_Delay(500);
-	  //LCD_clear();
-
-	  //LCD_send_txt((uint8_t *)buffer);
-    /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
+
 }
 
 /**

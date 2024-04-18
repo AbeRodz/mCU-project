@@ -35,6 +35,11 @@ bool MX_I2C_Init(){
 }
 
 */
+
+/**
+ * @brief Sends data to target I2C slave address, returns the status of the transmission.
+ * @retval HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef i2c_send(uint16_t tgt_address, uint8_t tx_buffer){
 //if(HAL_I2C_Master_Transmit (&hi2c1,LCD_DIR<<1,&valor, sizeof(valor),HAL_MAX_DELAY)!=HAL_OK)Error_Handler();
 	HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(&hi2c1, tgt_address<<1, &tx_buffer, sizeof(tx_buffer), HAL_MAX_DELAY);
@@ -44,6 +49,10 @@ HAL_StatusTypeDef i2c_send(uint16_t tgt_address, uint8_t tx_buffer){
 	return status;
 }
 
+/**
+ * @brief Reads data from target I2C slave address, returns the status of the transmission.
+ * @retval HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef i2c_read(uint16_t tgt_address, uint8_t rx_buffer){
 
 	HAL_StatusTypeDef status = HAL_I2C_Master_Receive(&hi2c1, tgt_address, &rx_buffer, sizeof(rx_buffer), HAL_MAX_DELAY);

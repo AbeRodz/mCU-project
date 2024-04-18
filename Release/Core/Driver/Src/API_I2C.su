@@ -1,0 +1,2 @@
+../Core/Driver/Src/API_I2C.c:43:19:i2c_send	24	static
+../Core/Driver/Src/API_I2C.c:56:19:i2c_read	24	static

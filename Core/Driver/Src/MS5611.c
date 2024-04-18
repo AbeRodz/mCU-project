@@ -30,9 +30,17 @@ static int32_t calculate_temp_diff(PROM_Data * prom_data, uint32_t D2_value );
 static int32_t calculate_temperature(PROM_Data * prom_data, uint32_t D2_value);
 static int32_t calculate_pressure(PROM_Data * prom_data,uint32_t D1_value , uint32_t D2_value );
 static int32_t calculateAltitude(int32_t pressure);
-static int32_t celsiusToFahrenheit( int32_t temp_celsius);
+static int32_t celsiusToFahrenheit(int32_t temp_celsius);
+
 // Implementations
 
+
+/**
+ * @brief Reads from the prom memory the factory settings according to the passed register
+ * the register are the values C1 to C6, check the PROM_Data struct to check each value definition.
+ * @retval uint16_t containin the prom value of the passed register.
+ * @note First the reset sequence must be performed to receive the prom data.
+ */
 static uint16_t MS5611_Read_PROM_REGISTER(uint8_t reg){
 
 	uint8_t byte[3];
@@ -40,50 +48,64 @@ static uint16_t MS5611_Read_PROM_REGISTER(uint8_t reg){
 
 	MS5611_CS_LOW();
 	sendRead(reg, byte);
-	//HAL_SPI_TransmitReceive(&hspi1, &reg, byte, 3, SPI_TIMEOUT);
+
 	MS5611_CS_HIGH();
+
+	// the sensor sends 16 bits where the index 0 are trash values, and index 1 and 2 contain the prom data
+	// this data hast to be casted onto a single int16 value, by performing bit shifting and adding the values.
 
 	return_value = ((uint16_t)byte[1]<<8) | (byte[2]);
 	return return_value;
 }
 
 
-
+/**
+ * @brief Sets chip select to high.
+ */
 static void MS5611_CS_HIGH(void){
 	HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);
 }
 
+/**
+ * @brief Sets chip select to low.
+ */
 static void MS5611_CS_LOW(void){
 	HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);
 }
 
+/**
+ * @brief Sends bytes via I2C API.
+ */
 int MS5611_write(uint8_t bytes){
-	//MS5611_CS_LOW();
+
 	if (send(bytes)!= HAL_OK) return 1;
-	//MS5611_CS_HIGH();
+
 	return 0;
 }
 
+/**
+ * @brief Receives bytes via I2C API.
+ */
 int MS5611_read(uint8_t bytes){
 	if (read(bytes)!= HAL_OK) return 1;
 	return 0;
 }
 
 /**
- * @brief MS5611 constructor, handles sensor reset, and prom read.
+ * @brief MS5611 initializer, handles sensor reset sequence, and reads factory settings from the prom to perform calibration.
  */
 void MS5611_init(){
 
 	uint8_t reset = RESET_CMD;
 	MS5611_CS_LOW();
-	//HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 0);
-	HAL_SPI_Transmit(&hspi1, &reset, 1, 20);
+	MS5611_write(reset);
+	//HAL_SPI_Transmit(&hspi1, &reset, 1, 20);
 
 	HAL_Delay(3);
 	MS5611_CS_HIGH();
-	//HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
-	HAL_Delay(10);
 
+	HAL_Delay(10);
+	// loop 6 times to get the values for each register as said on the datasheet.
 	for (uint8_t i = 0; i < 6; i++) {
 
 		switch (i) {
@@ -109,7 +131,6 @@ int32_t MS5611_read_temp(){
 	MS5611_Conversion_D2( CONVERT_D2_OSR_256);
 	MS5611_CS_HIGH();
 
-	//HAL_Delay(10);
 	uint32_t D2_value = MS5611_ADC_READ();
 
 	int32_t T = calculate_temperature(&prom_data,D2_value);
@@ -134,13 +155,12 @@ int32_t MS5611_read_pressure(){
 
 	uint32_t D1_value = MS5611_ADC_READ();
 
-	//HAL_Delay(10);
 
 	MS5611_CS_LOW();
 	MS5611_Conversion_D2(CONVERT_D2_OSR_256);
 	MS5611_CS_HIGH();
 	uint32_t D2_value = MS5611_ADC_READ();
-	//int32_t T = calculate_temperature(&prom_data,D2_value);
+
 	int32_t pressure = calculate_pressure(&prom_data,D1_value,D2_value);
 
 	return pressure;
@@ -148,7 +168,8 @@ int32_t MS5611_read_pressure(){
 
 /**
  * @brief Reads real pressure from the sensor and performs calculations too get altitude in meters.
- * ituses the MS5611_read_pressure function to capture the pressure.
+ * it uses the MS5611_read_pressure function to capture the pressure.
+ * @retval uint32_t with the altitude value.
  */
 int32_t MS5611_read_altitude(){
 
@@ -161,6 +182,7 @@ int32_t MS5611_read_altitude(){
  * @brief Executes the internal ADC read command,containing the temperature or pressure raw data.
  * it is expected to receive 24 bits from the IC, so it must be casted onto an uint32_t.
  * @note First it a conversion command must be executed in order to receive data.
+ * @retval uint32_t with raw measurement value.
  */
 static uint32_t MS5611_ADC_READ(){
 	uint8_t adc = ADC_READ;
@@ -168,17 +190,19 @@ static uint32_t MS5611_ADC_READ(){
 	uint8_t result_buffer[4];
 	HAL_StatusTypeDef ret;
 	uint32_t return_value;
-
-	ret= HAL_SPI_TransmitReceive(&hspi1,&adc, result_buffer, 4, 50);
+	// when performing ADC read the sensor returns 24 bits, this data contains the raw measurement data for both temp and pressure.
+	ret=sendRead(adc, result_buffer);
+	//ret= HAL_SPI_TransmitReceive(&hspi1,&adc, result_buffer, 4, 50);
 	if(ret != HAL_OK)
 	{
 		MS5611_CS_HIGH();
-		//HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
-	}
 
+	}
+	// index 0 contains trash values due to TransmitReceive.
+	// the values are casted into a single uint32_t that contains the actual value, this is performed by bit shifting and adding byte by byte.
 	return_value = ((uint32_t)result_buffer[1]<<16) | (uint32_t)(result_buffer[2]<<8) | (result_buffer[3]);
 	MS5611_CS_HIGH();
-	//HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, 1);
+
 	return return_value;
 }
 
@@ -222,18 +246,22 @@ static int32_t calculate_temp_diff(PROM_Data * prom_data, uint32_t D2_value ){
  * uses the raw temperature, to calculate the temperature difference according to the datasheet.
  * @param PROM_Data pointer to a populated struct with data from the prom.
  * @param D2_value(temperature) raw value of the temperature, extracted from the conversion sequence.
- * @retval int64_t
+ * @retval int32_t
  */
 static int32_t calculate_temperature(PROM_Data * prom_data, uint32_t D2_value ){
-
 
 	int32_t dT = calculate_temp_diff(prom_data,D2_value );
 	int64_t Temp = 2000 + ((int64_t)dT * prom_data->C6 )/ 8388608;
 	return Temp;
 }
 
+/**
+ * @brief Calculates the temperature in fahrenheit units given the temperature in celsius.
+ * @param temp_celsius temperature value obtained from the sensor.
+ * @retval int32_t converted temperature.
+ */
 static int32_t celsiusToFahrenheit( int32_t temp_celsius) {
-    return (temp_celsius * 9 / 5) + 32;
+	return (temp_celsius * 9 / 5) + 32;
 }
 
 /**
@@ -242,26 +270,29 @@ static int32_t celsiusToFahrenheit( int32_t temp_celsius) {
  * @param PROM_Data pointer to a populated struct with data from the prom.
  * @param D1_value(pressure) raw value of the temperature, extracted from the conversion sequence.
  * @param D2_value(temperature) raw value of the temperature, extracted from the conversion sequence.
- * @retval int64_t
+ * @retval int32_t
  */
 static int32_t calculate_pressure(PROM_Data * prom_data,uint32_t D1_value , uint32_t D2_value ){
-	//OFF = OFFT1 + TCO * dT = C2 * 216 + (C4 * dT ) / 27
+
 	int32_t dT = calculate_temp_diff(prom_data,D2_value );
 	int64_t OFF = ((int64_t)prom_data->C2 * 65536) + ((int64_t)prom_data->C4 * dT)/128;
-	//OFF = (int64_t)prom[1] * 65536 + ((int64_t)prom[3] * dT ) / 128;
-	//SENS = (int64_t)prom[0] * 32768 + ((int64_t)prom[2] * dT) / 256;
-	//SENS = SENST1 + TCS * dT = C1 * 2 15 + (C3 * dT ) / 28
+
 	int64_t SENS = ((int64_t)prom_data->C1*32768) + ((int64_t)prom_data->C3 * dT)/256;
 
-	//P = D1 * SENS - OFF = (D1 * SENS / 2 21 - OFF) / 2 15
 	int64_t P = (D1_value * (SENS/ 2097152)- OFF)/32768;
 
 	return (int32_t)P;
 }
 
+/**
+ * @brief Calculates the altitude given the pressure.
+ * @param pressure value obtained from the sensor.
+ * @note formula obtained from https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
+ * @retval int32_t
+ */
 static int32_t calculateAltitude(int32_t pressure) {
 
 	int32_t altitude = 145366.45 * (1.0 - pow((((pressure)/100)/ SEA_LEVEL_PRESSURE), 0.1903));
-    return altitude * 0.3048;
+	return altitude * 0.3048;
 }
 

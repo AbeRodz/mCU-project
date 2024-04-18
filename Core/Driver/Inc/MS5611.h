@@ -9,15 +9,13 @@
 #define MS5611_INC_MS5611_H_
 
 
-#include "port.h"
+#include <MS5611_port.h>
 
 #define SPI1_CS_Pin GPIO_PIN_4
 #define SPI1_CS_GPIO_Port GPIOA
 #define RESET_CMD 0x1E
 #define ADC_READ 0x00;
 #define PROM_READ 0xA0;
-
-#define SPI_TIMEOUT 50
 
 #define CMD_PROM_C1 0xA2
 #define CMD_PROM_C2 0xA4

@@ -1,0 +1,2 @@
+../Core/Driver/Src/API_uart.c:15:6:sendInt32OverUSART	1
+../Core/Driver/Src/API_uart.c:27:6:uart_send	1

@@ -8,7 +8,7 @@
 
 /* USER CODE END 0 */
 //#include "stm32f4xx_hal.h"
-#include "port.h"
+#include <MS5611_port.h>
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -40,15 +40,23 @@ bool MX_SPI1_Init(SPI_HandleTypeDef *hspi)
 }
 
 */
+
+/**
+ * @brief sends and receives data onto both a transmit and receive buffers, via SPI.
+ * @note First the CS pin must be triggered to expect the correct functionality.
+ */
 HAL_StatusTypeDef sendRead(uint8_t tx_buffer, uint8_t *rx_buffer){
 	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&hspi1, &tx_buffer, rx_buffer,  sizeof(rx_buffer), HAL_MAX_DELAY);
-	//HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi1, &tx_buffer, sizeof(tx_buffer), HAL_MAX_DELAY);
 	if (status != HAL_OK){
 		return HAL_ERROR;
 	}
 	return HAL_OK;
 }
 
+/**
+ * @brief sends data given a transmit buffer, via SPI.
+ * @note First the CS pin must be triggered to expect the correct functionality.
+ */
 HAL_StatusTypeDef send( uint8_t tx_buffer){
 
 	HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi1, &tx_buffer, sizeof(tx_buffer), HAL_MAX_DELAY);
@@ -58,6 +66,10 @@ HAL_StatusTypeDef send( uint8_t tx_buffer){
 	return HAL_OK;
 }
 
+/**
+ * @brief sends data given a receive buffer, via SPI.
+ * @note First the CS pin must be triggered to expect the correct functionality.
+ */
 HAL_StatusTypeDef read( uint8_t rx_buffer){
 
 	HAL_StatusTypeDef status = HAL_SPI_Receive(&hspi1, &rx_buffer, sizeof(rx_buffer),HAL_MAX_DELAY);

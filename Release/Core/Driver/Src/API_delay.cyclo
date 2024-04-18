@@ -1,0 +1,5 @@
+../Core/Driver/Src/API_delay.c:79:6:delayInit	1
+../Core/Driver/Src/API_delay.c:23:6:periodicBlinkInit	2
+../Core/Driver/Src/API_delay.c:95:8:delayRead	3
+../Core/Driver/Src/API_delay.c:44:6:periodicBlink	5
+../Core/Driver/Src/API_delay.c:63:6:blink	2

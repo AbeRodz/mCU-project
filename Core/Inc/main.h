@@ -28,7 +28,10 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
+#include "API_I2C.h"
+#include "API_lcd.h"
+#include "MS5611.h"
+#include "MEF_LCD.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 

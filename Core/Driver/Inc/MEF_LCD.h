@@ -20,7 +20,8 @@ typedef enum {
     DISPLAY_TEMP, // temp
 	DISPLAY_TEMP_F, // TEMP F
 	DISPLAY_PRESS, // PRESSURE
-	DISPLAY_ALT // ALTITUDE
+	DISPLAY_ALT, // ALTITUDE
+	DISPLAY_STANDBY,
 } DisplayState_t;
 
 typedef enum{
@@ -30,6 +31,7 @@ BUTTON_DOWN,
 BUTTON_RAISING,
 BUTTON_LONG_PRESS
 } debounceState_t;
+
 void menu_init(void);
 void update_display_state();
 
@@ -39,7 +41,5 @@ void debounceFSM_update();	// debe leer las entradas, resolver la lógica de
 void buttonPressed();			// debe encender el LED
 void buttonReleased();		// debe apagar el LED
 
-
-bool_t readKey();
 
 #endif /* API_INC_API_DEBOUNCE_H_ */
