@@ -66,7 +66,7 @@ int get_power_state(){
 
 
 /**
- * @brief Checks the current power state of the LCD to if active, update a value given a column in the first row.
+ * @brief Checks the current power state of the LCD, if active updates a value given a column in the first row.
  * @note This function only prints on the LCD's active state.
  */
 void power_print(int32_t value, uint8_t col){

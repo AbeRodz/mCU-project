@@ -16,7 +16,7 @@ void sendInt32OverUSART(int32_t data) {
 
     char str[100];
 
-    int size_len = sprintf(str, "data: %ld \t", (long)data);
+    int size_len = sprintf(str, "data: %ld \n\r", (long)data);
 
     HAL_UART_Transmit(&huart3, (uint8_t *)str, size_len, HAL_MAX_DELAY);
 }
