@@ -1,3 +1,0 @@
-../Core/Driver/Src/MS5611_port.c:48:19:sendRead	1
-../Core/Driver/Src/MS5611_port.c:60:19:send	1
-../Core/Driver/Src/MS5611_port.c:73:19:read	1

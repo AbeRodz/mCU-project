@@ -1,2 +1,0 @@
-../Core/Driver/Src/API_uart.c:15:6:sendInt32OverUSART	112	static
-../Core/Driver/Src/API_uart.c:27:6:uart_send	16	static
